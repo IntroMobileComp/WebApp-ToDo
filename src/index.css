@@ -1,9 +1,23 @@
 @import url("https://fonts.googleapis.com/css?family=Kanit");
 @import url("https://fonts.googleapis.com/css?family=Sarabun");
+
+#root {
+  margin: 0;
+}
+
 body {
+  margin: 0;
   font-family: "Kanit";
 }
 #page-wrap {
   padding-top: 0px;
   padding-left: 0px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
