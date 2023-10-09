@@ -1,17 +1,28 @@
 import SideBar from "./SideBar";
 
-function Credit() {
+import { useEffect } from "react";
+import { useCookies } from "react-cookie";
+import { useNavigate } from "react-router-dom";
+
+function SignOut() {
+  let [cookies, removeCookie] = useCookies(["token"]);
+  let navigate = useNavigate();
+
+  useEffect(() => {
+    removeCookie("token");
+    navigate("/signin");
+  }, []);
+
   return (
     <div id="outer-container">
       <SideBar pageWrapId={"page-wrap"} outerContainerId={"outer-container"} />
       <div id="page-wrap">
         <center>
-          <h3>จัดทำโดย</h3>
-          <h1>ชัชวิทย์ อาภรณ์เทวัญ</h1>
+          <h1>กำลังออกจากระบบ</h1>
         </center>
       </div>
     </div>
   );
 }
 
-export default Credit;
+export default SignOut;
