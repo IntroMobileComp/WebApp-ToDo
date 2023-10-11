@@ -1,5 +1,4 @@
-import SideBar from "./SideBar";
-
+import SideBar from "./components/SideBar";
 import MaterialTable from "material-table";
 import { ThemeProvider, createTheme } from "@mui/material";
 import { forwardRef } from "react";
@@ -18,9 +17,14 @@ import Remove from "@material-ui/icons/Remove";
 import SaveAlt from "@material-ui/icons/SaveAlt";
 import Search from "@material-ui/icons/Search";
 import ViewColumn from "@material-ui/icons/ViewColumn";
-import { useState, useEffect } from "react";
-
 import axios from "axios";
+import moment from "moment";
+import "moment/locale/th";
+
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { MTableToolbar } from "material-table";
+import { useState, useEffect } from "react";
+import { Snackbar, Alert } from "@mui/material";
 import { useCookies } from "react-cookie";
 
 function Main() {
@@ -52,66 +56,143 @@ function Main() {
     ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />),
   };
 
+  const [selectedDate, handleDateChange] = useState(new Date());
   const [columns, setColumns] = useState([
-    { title: "เลขระเบียน", field: "id", editable: "never" },
-    { title: "กิจกรรม", field: "name" },
+    // { title: "กิจกรรม", field: "name" },
+    // {
+    //   title: "วันเวลา",
+    //   field: "when",
+    //   initialEditValue: "yyyy-MM-ddTHH:mm:ss",
+    // },
+
     {
-      title: "วันเวลา",
+      title: "กิจกรรม",
+      field: "name",
+    },
+    {
+      title: "วัน/เวลา",
       field: "when",
-      initialEditValue: "yyyy-MM-ddTHH:mm:ss",
+      type: "datetime",
+      initialEditValue: selectedDate,
+      render: (rowData) =>
+        moment(rowData.when).format("D MMM YY เวลา HH:mm น."),
     },
   ]);
-
+  
   const [data, setData] = useState([]);
-
   const defaultMaterialTheme = createTheme();
+  const [cookies] = useCookies(["token"]);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarType, setSnackbarType] = useState("info");
+  const handleOpenSnackbar = (message, type) => {
+    setSnackbarMessage(message);
+    setSnackbarType(type);
+    setOpenSnackbar(true);
+  };
 
-  let [cookies] = useCookies(["token"]);
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setOpenSnackbar(false);
+  };
 
-  useEffect(() => {
+  const fetchActivities = () => {
     axios
-      .get("/activities", {
+      .get("http://localhost:5022/activities", {
         headers: { Authorization: "Bearer " + cookies["token"] },
         timeout: 10 * 1000,
       })
       .then((response) => {
         setData(response.data);
+        console.log("Fetch Activities successfully.");
       })
       .catch((error) => {
         if (error.code === "ECONNABORTED") {
           console.log("timeout");
         } else {
-          console.log(error.response.status);
+          console.log(error.response.status + " error: can't get activities.");
         }
       });
+  };
+
+  useEffect(() => {
+    fetchActivities();
   }, []);
 
   return (
     <div id="outer-container">
       <SideBar pageWrapId={"page-wrap"} outerContainerId={"outer-container"} />
       <div id="page-wrap">
+        <Snackbar
+          open={openSnackbar}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        >
+          <Alert
+            variant="filled"
+            onClose={handleCloseSnackbar}
+            severity={snackbarType}
+          >
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
         <ThemeProvider theme={defaultMaterialTheme}>
           <MaterialTable
             icons={tableIcons}
-            title={
-              <h1>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;To Do</h1>
-            }
+            options={{
+              headerStyle: {
+                fontFamily: "Kanit",
+              },
+              rowStyle: {
+                fontFamily: "Kanit",
+              },
+              searchFieldStyle: {
+                fontFamily: "Kanit",
+              },
+              actionsCellStyle: {
+                fontFamily: "Kanit",
+              },
+              actionsColumnIndex: -1,
+            }}
+            components={{
+              Toolbar: (props) => (
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div style={{ flex: 1 }}></div>
+                  <div style={{ textAlign: "center", flex: 2 }}>
+                    <h1>React ToDo List</h1>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <MTableToolbar {...props} />
+                  </div>
+                </div>
+              ),
+            }}
+            title={""}
             columns={columns}
             data={data}
             editable={{
-              onRowAddCancelled: (rowData) => {
+              onRowAddCancelled: () => {
                 /* do nothing */
               },
-              onRowUpdateCancelled: (rowData) => {
+              onRowUpdateCancelled: () => {
                 /* do nothing */
               },
               onRowAdd: (newData) =>
-                new Promise((resolve, reject) => {
+                new Promise((resolve) => {
                   setTimeout(() => {
                     axios
                       .post(
-                        "/activities",
-                        { name: newData.name, when: newData.when },
+                        "http://localhost:5022/activities",
+                        { Name: newData.name, When: newData.when },
                         {
                           headers: {
                             Authorization: "Bearer " + cookies["token"],
@@ -120,29 +201,38 @@ function Main() {
                         }
                       )
                       .then((response) => {
-                        newData.id = response.data.id;
-                        console.log("debugging!");
-                        console.log("1 = " + response.data.id);
-                        console.log("2 = " + newData);
+                        newData.idActivity = response.data.idActivity;
                         setData([...data, newData]);
+                        console.log("Add new activity.");
                       })
                       .catch((error) => {
                         if (error.code === "ECONNABORTED") {
                           console.log("timeout");
                         } else {
-                          console.log(error.response.status);
+                          handleOpenSnackbar(
+                            "FAIL to add new Activity.",
+                            "error"
+                          );
+                          console.log(
+                            error.response.status + " error: can't add row."
+                          );
                         }
                       });
+                    handleOpenSnackbar("Activity has benn added.", "success");
                     resolve();
                   }, 1000);
                 }),
               onRowUpdate: (newData, oldData) =>
-                new Promise((resolve, reject) => {
+                new Promise((resolve) => {
                   setTimeout(() => {
                     axios
                       .put(
-                        "/activities/" + oldData.id,
-                        { name: newData.name, when: newData.when },
+                        "http://localhost:5022/activities/" +
+                          oldData.idActivity,
+                        {
+                          Name: newData.name,
+                          When: moment(newData.when, "D MMM YY เวลา HH:mm น."),
+                        },
                         {
                           headers: {
                             Authorization: "Bearer " + cookies["token"],
@@ -150,45 +240,63 @@ function Main() {
                           timeout: 10 * 1000,
                         }
                       )
-                      .then((response) => {
+                      .then(() => {
                         const dataUpdate = [...data];
-                        const index = oldData.tableData.id;
+                        const index = oldData.tableData.idActivity;
                         dataUpdate[index] = newData;
                         setData([...dataUpdate]);
+                        console.log("Update Activity successfully.");
+                        fetchActivities();
                       })
                       .catch((error) => {
+                        handleOpenSnackbar("FAIL to update Activity.", "error");
                         if (error.code === "ECONNABORTED") {
                           console.log("timeout");
                         } else {
-                          console.log(error.response.status);
+                          console.log(
+                            error.response.status +
+                              " error: can't update activity."
+                          );
                         }
                       });
+                    handleOpenSnackbar("Activity has been Updated.", "info");
                     resolve();
                   }, 1000);
                 }),
               onRowDelete: (oldData) =>
-                new Promise((resolve, reject) => {
+                new Promise((resolve) => {
                   setTimeout(() => {
                     axios
-                      .delete("/activities/" + oldData.id, {
-                        headers: {
-                          Authorization: "Bearer " + cookies["token"],
-                        },
-                        timeout: 10 * 1000,
-                      })
-                      .then((response) => {
+                      .delete(
+                        "http://localhost:5022/activities/" +
+                          oldData.idActivity,
+                        {
+                          headers: {
+                            Authorization: "Bearer " + cookies["token"],
+                          },
+                          timeout: 10 * 1000,
+                        }
+                      )
+                      .then(() => {
                         const dataDelete = [...data];
-                        const index = oldData.tableData.id;
+                        const index = oldData.tableData.idActivity;
                         dataDelete.splice(index, 1);
                         setData([...dataDelete]);
+                        console.log("Delete Activity successfully.");
+                        fetchActivities();
                       })
                       .catch((error) => {
+                        handleOpenSnackbar("FAIL to delete Activity.", "error");
                         if (error.code === "ECONNABORTED") {
                           console.log("timeout");
                         } else {
-                          console.log(error.response.status);
+                          console.log(
+                            error.response.status +
+                              " error: can't delete activity."
+                          );
                         }
                       });
+                    handleOpenSnackbar("Activity has been deleted.", "success");
                     resolve();
                   }, 1000);
                 }),

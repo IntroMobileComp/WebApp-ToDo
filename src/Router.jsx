@@ -1,8 +1,8 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import SignIn from "./SignIn";
+import SignIn from "./components/SignIn";
+import Credit from "./components/Credit";
+import SignOut from "./components/SignOut";
 import ToDo from './ToDo';
-import Credit from "./Credit";
-import SignOut from "./SignOut";
 
 const router = createBrowserRouter([
   {

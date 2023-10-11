@@ -1,16 +1,17 @@
 import SideBar from "./SideBar";
-
 import { useEffect } from "react";
 import { useCookies } from "react-cookie";
 import { useNavigate } from "react-router-dom";
 
 function SignOut() {
-  let [cookies, removeCookie] = useCookies(["token"]);
-  let navigate = useNavigate();
+  const [cookies, removeCookie] = useCookies(["token"]);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    removeCookie("token");
-    navigate("/signin");
+    setTimeout(() => {
+      removeCookie("token");
+      navigate("/"); 
+    }, 1500);
   }, []);
 
   return (
@@ -18,7 +19,7 @@ function SignOut() {
       <SideBar pageWrapId={"page-wrap"} outerContainerId={"outer-container"} />
       <div id="page-wrap">
         <center>
-          <h1>กำลังออกจากระบบ</h1>
+          <h1>Signing out...</h1>
         </center>
       </div>
     </div>
