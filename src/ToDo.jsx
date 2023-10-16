@@ -1,3 +1,4 @@
+/* eslint-disable react/display-name */
 import SideBar from "./components/SideBar";
 import MaterialTable from "material-table";
 import { ThemeProvider, createTheme } from "@mui/material";
