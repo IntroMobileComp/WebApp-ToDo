@@ -1,3 +1,6 @@
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+
 /* eslint-disable react/display-name */
 import SideBar from "./components/SideBar";
 import MaterialTable from "material-table";
@@ -22,7 +25,7 @@ import axios from "axios";
 import moment from "moment";
 import "moment/locale/th";
 
-import { LocalizationProvider } from '@mui/x-date-pickers';
+
 import { MTableToolbar } from "material-table";
 import { useState, useEffect } from "react";
 import { Snackbar, Alert } from "@mui/material";
@@ -100,7 +103,7 @@ function Main() {
 
   const fetchActivities = () => {
     axios
-      .get("http://localhost:5022/activities", {
+      .get(`${import.meta.env.VITE_APP_API}/activities`, {
         headers: { Authorization: "Bearer " + cookies["token"] },
         timeout: 10 * 1000,
       })
@@ -191,7 +194,7 @@ function Main() {
                   setTimeout(() => {
                     axios
                       .post(
-                        "http://localhost:5022/activities",
+                        `${import.meta.env.VITE_APP_API}/activities`,
                         { Name: newData.name, When: newData.when },
                         {
                           headers: {
@@ -227,7 +230,7 @@ function Main() {
                   setTimeout(() => {
                     axios
                       .put(
-                        "http://localhost:5022/activities/" +
+                        `${import.meta.env.VITE_APP_API}/activities/` +
                           oldData.idActivity,
                         {
                           Name: newData.name,
@@ -268,7 +271,7 @@ function Main() {
                   setTimeout(() => {
                     axios
                       .delete(
-                        "http://localhost:5022/activities/" +
+                        `${import.meta.env.VITE_APP_API}/activities/` +
                           oldData.idActivity,
                         {
                           headers: {
