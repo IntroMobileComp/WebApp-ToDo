@@ -57,7 +57,6 @@ function Main() {
     ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />),
   };
 
-  const [selectedDate, handleDateChange] = useState(new Date());
   const [columns, setColumns] = useState([
     // { title: "กิจกรรม", field: "name" },
     // {
@@ -73,8 +72,8 @@ function Main() {
     {
       title: "วัน/เวลา",
       field: "when",
-      type: "datetime",
-      initialEditValue: selectedDate,
+      // type: "datetime",
+      initialEditValue: new Date(),
       render: (rowData) =>
         moment(rowData.when).format("D MMM YY เวลา HH:mm น."),
     },
@@ -232,7 +231,7 @@ function Main() {
                           oldData.idActivity,
                         {
                           Name: newData.name,
-                          When: moment(newData.when, "D MMM YY เวลา HH:mm น."),
+                          When: newData.when,
                         },
                         {
                           headers: {
