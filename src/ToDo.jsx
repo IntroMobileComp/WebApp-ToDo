@@ -1,6 +1,3 @@
-import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-
 /* eslint-disable react/display-name */
 import SideBar from "./components/SideBar";
 import MaterialTable from "material-table";
@@ -25,11 +22,14 @@ import axios from "axios";
 import moment from "moment";
 import "moment/locale/th";
 
-
 import { MTableToolbar } from "material-table";
 import { useState, useEffect } from "react";
 import { Snackbar, Alert } from "@mui/material";
 import { useCookies } from "react-cookie";
+
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { DateTimePicker } from "@mui/x-date-pickers";
 
 function Main() {
   const tableIcons = {
@@ -60,6 +60,7 @@ function Main() {
     ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />),
   };
 
+  const [time, setTime] = useState(new Date());
   const [columns, setColumns] = useState([
     // { title: "กิจกรรม", field: "name" },
     // {
@@ -75,13 +76,22 @@ function Main() {
     {
       title: "วัน/เวลา",
       field: "when",
-      // type: "datetime",
-      initialEditValue: new Date(),
+      type: "datetime",
+      initialEditValue: time,
       render: (rowData) =>
         moment(rowData.when).format("D MMM YY เวลา HH:mm น."),
+      editComponent: () => (
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
+          <DateTimePicker 
+            label="Date-time"
+            value={time}
+            timezone="default"
+          />
+        </LocalizationProvider>
+      )
     },
   ]);
-  
+
   const [data, setData] = useState([]);
   const defaultMaterialTheme = createTheme();
   const [cookies] = useCookies(["token"]);
@@ -219,6 +229,7 @@ function Main() {
                           console.log(
                             error.response.status + " error: can't add row."
                           );
+                          console.log(newData.when);
                         }
                       });
                     handleOpenSnackbar("Activity has benn added.", "success");
@@ -234,7 +245,7 @@ function Main() {
                           oldData.idActivity,
                         {
                           Name: newData.name,
-                          When: newData.when,
+                          When: time,
                         },
                         {
                           headers: {
