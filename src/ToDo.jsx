@@ -20,7 +20,7 @@ import Search from "@material-ui/icons/Search";
 import ViewColumn from "@material-ui/icons/ViewColumn";
 import axios from "axios";
 import moment from "moment";
-import "moment/locale/th";
+import "moment/dist/locale/th"; // only in VITE
 
 import { MTableToolbar } from "material-table";
 import { useState, useEffect } from "react";
@@ -77,11 +77,12 @@ function Main() {
       title: "วัน/เวลา",
       field: "when",
       type: "datetime",
-      initialEditValue: new Date(),
-      render: (rowData) =>
-        moment(rowData.when).format("D MMM YY เวลา HH:mm น."),
+      initialEditValue: time,
+      render: (rowData) => {
+        return moment(rowData.when).format("D MMM YY เวลา HH:mm น.");
+      },
       editComponent: () => (
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
+        <LocalizationProvider dateAdapter={AdapterDateFns} >
           <DateTimePicker
             label="Date-time"
             value={time}
@@ -135,6 +136,7 @@ function Main() {
   };
 
   useEffect(() => {
+    moment.locale("th");
     fetchActivities();
   }, []);
 
@@ -240,10 +242,9 @@ function Main() {
                     resolve();
                   }, 1000);
                 }),
-              onRowUpdate: (newData, oldData) =>
+              onRowUpdate: (newData, oldData) => {
                 new Promise((resolve) => {
                   setTimeout(() => {
-                    
                     axios
                       .put(
                         `${import.meta.env.VITE_APP_API}/activities/` +
@@ -261,7 +262,6 @@ function Main() {
                         }
                       )
                       .then(() => {
-                        
                         // TIME DEBUGBING
                         // console.log("Old date-time: " + oldData.when);
                         // console.log("New date-time: " + newData.when);
@@ -270,7 +270,7 @@ function Main() {
                         // time.setHours(time.getHours() + 7);
                         // console.log("Time setHour: " + time.toISOString());
                         // console.log("Time ISO-date adjusted: " + time.toISOString());
-                        
+
                         const dataUpdate = [...data];
                         const index = oldData.tableData.idActivity;
                         dataUpdate[index] = newData;
@@ -278,7 +278,7 @@ function Main() {
                         console.log("Update Activity successfully.");
 
                         // Reset time
-                        setTime(new Date);
+                        setTime(new Date());
 
                         fetchActivities();
                       })
@@ -296,7 +296,8 @@ function Main() {
                     handleOpenSnackbar("Activity has been Updated.", "info");
                     resolve();
                   }, 1000);
-                }),
+                });
+              },
               onRowDelete: (oldData) =>
                 new Promise((resolve) => {
                   setTimeout(() => {
