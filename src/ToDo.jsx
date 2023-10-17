@@ -77,18 +77,22 @@ function Main() {
       title: "วัน/เวลา",
       field: "when",
       type: "datetime",
-      initialEditValue: time,
+      initialEditValue: new Date(),
       render: (rowData) =>
         moment(rowData.when).format("D MMM YY เวลา HH:mm น."),
       editComponent: () => (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <DateTimePicker 
+          <DateTimePicker
             label="Date-time"
             value={time}
             timezone="default"
+            onChange={(newValue) => {
+              console.log(newValue);
+              setTime(newValue);
+            }}
           />
         </LocalizationProvider>
-      )
+      ),
     },
   ]);
 
@@ -226,10 +230,10 @@ function Main() {
                             "FAIL to add new Activity.",
                             "error"
                           );
+                          console.log("newData.when = " + newData.when);
                           console.log(
                             error.response.status + " error: can't add row."
                           );
-                          console.log(newData.when);
                         }
                       });
                     handleOpenSnackbar("Activity has benn added.", "success");
@@ -239,13 +243,15 @@ function Main() {
               onRowUpdate: (newData, oldData) =>
                 new Promise((resolve) => {
                   setTimeout(() => {
+                    
                     axios
                       .put(
                         `${import.meta.env.VITE_APP_API}/activities/` +
                           oldData.idActivity,
                         {
                           Name: newData.name,
-                          When: time,
+                          // Time need to be +7 hours due to the date convert to ISO (Indochina timezone)
+                          When: new Date(time.setHours(time.getHours() + 7)),
                         },
                         {
                           headers: {
@@ -255,11 +261,25 @@ function Main() {
                         }
                       )
                       .then(() => {
+                        
+                        // TIME DEBUGBING
+                        // console.log("Old date-time: " + oldData.when);
+                        // console.log("New date-time: " + newData.when);
+                        // console.log("Time state: " + time);
+                        // console.log("Time ISO-date: " + time.toISOString());
+                        // time.setHours(time.getHours() + 7);
+                        // console.log("Time setHour: " + time.toISOString());
+                        // console.log("Time ISO-date adjusted: " + time.toISOString());
+                        
                         const dataUpdate = [...data];
                         const index = oldData.tableData.idActivity;
                         dataUpdate[index] = newData;
                         setData([...dataUpdate]);
                         console.log("Update Activity successfully.");
+
+                        // Reset time
+                        setTime(new Date);
+
                         fetchActivities();
                       })
                       .catch((error) => {
