@@ -211,7 +211,10 @@ function Main() {
                     axios
                       .post(
                         `${import.meta.env.VITE_APP_API}/activities`,
-                        { Name: newData.name, When: newData.when },
+                        {
+                          Name: newData.name,
+                          When: new Date(time.setHours(time.getHours() + 7)),
+                        },
                         {
                           headers: {
                             Authorization: "Bearer " + cookies["token"],
