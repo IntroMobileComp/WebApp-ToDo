@@ -88,7 +88,7 @@ function Main() {
             value={time}
             timezone="default"
             onChange={(newValue) => {
-              console.log(newValue);
+              console.log("Input DateTime: "+newValue);
               setTime(newValue);
             }}
           />
@@ -223,6 +223,8 @@ function Main() {
                         newData.idActivity = response.data.idActivity;
                         setData([...data, newData]);
                         console.log("Add new activity.");
+                        setTime(new Date());
+                        fetchActivities();
                       })
                       .catch((error) => {
                         if (error.code === "ECONNABORTED") {
@@ -242,7 +244,7 @@ function Main() {
                     resolve();
                   }, 1000);
                 }),
-              onRowUpdate: (newData, oldData) => {
+              onRowUpdate: (newData, oldData) =>
                 new Promise((resolve) => {
                   setTimeout(() => {
                     axios
@@ -296,8 +298,7 @@ function Main() {
                     handleOpenSnackbar("Activity has been Updated.", "info");
                     resolve();
                   }, 1000);
-                });
-              },
+                }),
               onRowDelete: (oldData) =>
                 new Promise((resolve) => {
                   setTimeout(() => {
